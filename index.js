@@ -10,6 +10,11 @@ const notificationRoutes=require('./routes/notificationRoutes')
 
 const app = express();
 
+require('dotenv').config();
+const pool = require('./config/db');
+pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS images JSONB DEFAULT '[]'::jsonb;`)
+  .then(() => console.log("Migrated products table to support images array"))
+  .catch(err => console.error("Migration error:", err.message));
 
 app.use(cors());
 app.use(express.json());

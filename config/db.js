@@ -5,8 +5,11 @@
 //   host: "localhost",
 //   database: "ecommerce_db",
 //   password: "shar123",
-//   port: 5000,
+//   port: 5432,
 // });
+// pool.connect()
+//   .then(() => console.log("DB connected"))
+//   .catch(err => console.error("DB connection error:", err));
 
 // module.exports = pool;
 

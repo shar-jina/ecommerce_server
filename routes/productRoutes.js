@@ -6,8 +6,8 @@ const upload=require('../middleware/upload')
 
 const productController = require("../controllers/productcontroller");
 
-router.post("/add",verifytoken,allowRoles("admin","manager"), upload.single("image"), productController.addProduct);
-router.put("/:id",verifytoken,allowRoles("admin","manager"), upload.single("image"), productController.updateProduct);
+router.post("/add",verifytoken,allowRoles("admin","manager"), upload.array("images", 5), productController.addProduct);
+router.put("/:id",verifytoken,allowRoles("admin","manager"), upload.array("images", 5), productController.updateProduct);
 router.delete("/:id",verifytoken,allowRoles("admin","manager"), productController.deleteProduct);
 
 router.get("/", productController.getProducts);
