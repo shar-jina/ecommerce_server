@@ -49,8 +49,13 @@ exports.registerUser = async (req, res) => {
       [name, email, hashedPassword, userRole, otp, otpExpires, false]
     );
 
-    // send OTP
-    await sendOTPEmail(email, otp);
+    // send OTP asynchronously so it doesn't hang the request on restrictive hosts like Render.
+    // We also log the OTP directly to the server terminal so you can verify accounts without needing the email!
+    console.log(`\n================================`);
+    console.log(`[DEV MODE] OTP for ${email} is: ${otp}`);
+    console.log(`================================\n`);
+    
+    sendOTPEmail(email, otp).catch(err => console.error("Background email failed:", err.message));
 
     res.status(201).json({
       message: "User registered. Please verify your OTP sent to email.",
