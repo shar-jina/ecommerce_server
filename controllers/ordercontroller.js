@@ -4,7 +4,7 @@ const pool = require("../config/db");
 exports.placeOrder = async (req, res) => {
   const client = await pool.connect();
   try {
-    const { items, total_amount, shipping_address, contact_number } = req.body;
+    const { items, total_amount, shipping_address, contact_number, payment_method } = req.body;
     const user_id = req.user.id; // user_id from jwtmiddleware
 
     if (!items || items.length === 0) {
@@ -15,9 +15,9 @@ exports.placeOrder = async (req, res) => {
 
     // 1. Insert into orders table
     const orderResult = await client.query(
-      `INSERT INTO orders (user_id, total_amount, shipping_address, contact_number)
-       VALUES ($1, $2, $3, $4) RETURNING id`,
-      [user_id, total_amount, shipping_address, contact_number]
+      `INSERT INTO orders (user_id, total_amount, shipping_address, contact_number, payment_method)
+       VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+      [user_id, total_amount, shipping_address, contact_number, payment_method || 'unspecified']
     );
 
     const orderId = orderResult.rows[0].id;
