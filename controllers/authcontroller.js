@@ -132,6 +132,12 @@ exports.loginUser = async (req, res) => {
       });
     }
 
+    if (user.rows[0].is_blocked) {
+      return res.status(403).json({
+        message: "Your account has been temporarily suspended by an administrator.",
+      });
+    }
+
     // check if verified
     if (!user.rows[0].is_verified) {
       return res.status(403).json({

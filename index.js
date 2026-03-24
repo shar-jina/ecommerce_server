@@ -7,6 +7,7 @@ const productRoutes=require('./routes/productRoutes')
 const postRoutes=require('./routes/postRoutes')
 const orderRoutes=require('./routes/orderRoutes')
 const notificationRoutes=require('./routes/notificationRoutes')
+const userRoutes=require('./routes/userRoutes')
 
 const app = express();
 
@@ -16,6 +17,10 @@ pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS images JSONB DEFAULT '
   .then(() => console.log("Migrated products table to support images array"))
   .catch(err => console.error("Migration error:", err.message));
 
+pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_blocked BOOLEAN DEFAULT false;`)
+  .then(() => console.log("Migrated users table to support is_blocked status"))
+  .catch(err => console.error("Migration error (users):", err.message));
+
 app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static("./uploads"));
@@ -24,6 +29,7 @@ app.use("/api/products",productRoutes)
 app.use("/api/posts", postRoutes)
 app.use("/api/orders", orderRoutes)
 app.use("/api/notifications", notificationRoutes)
+app.use("/api/users", userRoutes)
 
 app.get("/", (req, res) => {
   res.status(200).send("Ecommerce Backend Running");
