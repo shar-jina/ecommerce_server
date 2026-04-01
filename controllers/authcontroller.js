@@ -28,14 +28,8 @@ exports.registerUser = async (req, res) => {
     const isPrivilegedRole = ["admin", "manager", "superadmin"].includes(userRole);
 
     if (isPrivilegedRole) {
-      const newUser = await pool.query(
-        "INSERT INTO users (name, email, password, role, is_verified) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-        [name, email, hashedPassword, userRole, true]
-      );
-      return res.status(201).json({
-        message: "Registration Successful",
-        user: newUser.rows[0],
-        is_verified: true
+      return res.status(403).json({
+        message: "Registration of privileged roles via the API is forbidden. These must be added directly via the database.",
       });
     }
 
@@ -155,7 +149,7 @@ exports.loginUser = async (req, res) => {
         id: user.rows[0].id,
         role: user.rows[0].role,
       },
-      "SECRET_KEY",
+      process.env.SECRET_KEY || "SECRET_KEY",
       { expiresIn: "1d" }
     );
 

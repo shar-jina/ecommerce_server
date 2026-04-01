@@ -42,7 +42,24 @@ pool.query(`
     console.log("Migrated settings table to support global configurations");
 }).catch(err => console.error("Migration error (settings):", err.message));
 
-app.use(cors());
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+
+app.use(helmet({
+  crossOriginResourcePolicy: false, // Ensure image uploads can still be served if needed cross-origin
+}));
+app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:5173", credentials: true }));
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: { message: "Too many requests from this IP, please try again after 15 minutes" }
+});
+
+app.use("/api/auth/login", apiLimiter);
+app.use("/api/auth/register", apiLimiter);
+app.use("/api/auth/verify-otp", apiLimiter);
+
 app.use(express.json());
 app.use("/uploads", express.static("./uploads"));
 app.use("/api/auth", authRoutes);
