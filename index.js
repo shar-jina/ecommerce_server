@@ -48,7 +48,14 @@ const rateLimit = require("express-rate-limit");
 app.use(helmet({
   crossOriginResourcePolicy: false, // Ensure image uploads can still be served if needed cross-origin
 }));
-app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:5173", credentials: true }));
+app.use(cors({ 
+  origin: [
+    process.env.FRONTEND_URL, 
+    "http://localhost:5173", 
+    "https://ecommerce-tan-psi-66.vercel.app"
+  ].filter(Boolean), 
+  credentials: true 
+}));
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
