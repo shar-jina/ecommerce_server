@@ -2,14 +2,14 @@ const pool = require("../config/db");
 
 exports.addPost = async (req, res) => {
     try {
-        const { title, content, category, product_id, discount_label } = req.body;
+        const { title, content, category, product_id, discount_label, target_category } = req.body;
         const image = req.file ? req.file.path : null;
 
         const newPost = await pool.query(
-            `INSERT INTO posts(title, content, category, image, product_id, discount_label)
-             VALUES($1, $2, $3, $4, $5, $6)
+            `INSERT INTO posts(title, content, category, image, product_id, discount_label, target_category)
+             VALUES($1, $2, $3, $4, $5, $6, $7)
              RETURNING *`,
-            [title, content, category, image, product_id || null, discount_label || null]
+            [title, content, category, image, product_id || null, discount_label || null, target_category || null]
         );
 
         res.status(201).json({
@@ -35,15 +35,15 @@ exports.getPosts = async (req, res) => {
 exports.updatePost = async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, content, category, product_id, discount_label } = req.body;
+        const { title, content, category, product_id, discount_label, target_category } = req.body;
         const image = req.file ? req.file.path : req.body.image;
 
         const updatedPost = await pool.query(
             `UPDATE posts 
-             SET title=$1, content=$2, category=$3, image=$4, product_id=$5, discount_label=$6
-             WHERE id=$7
+             SET title=$1, content=$2, category=$3, image=$4, product_id=$5, discount_label=$6, target_category=$7
+             WHERE id=$8
              RETURNING *`,
-            [title, content, category, image, product_id || null, discount_label || null, id]
+            [title, content, category, image, product_id || null, discount_label || null, target_category || null, id]
         );
 
         if (updatedPost.rows.length === 0) {
