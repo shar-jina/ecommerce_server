@@ -58,8 +58,10 @@ exports.registerUser = async (req, res) => {
     });
 
   } catch (error) {
+    console.error("LOGIN ERROR:", error);
     res.status(500).json({
-      error: error.message,
+      error: "Internal Server Error during login",
+      message: error.message,
     });
   }
 };
@@ -100,6 +102,7 @@ exports.verifyOTP = async (req, res) => {
     res.status(200).json({ message: "Email verified successfully. You can now login." });
 
   } catch (error) {
+    console.error("VERIFY OTP ERROR:", error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -160,8 +163,10 @@ exports.loginUser = async (req, res) => {
     });
 
   } catch (error) {
+    console.error("LOGIN ERROR:", error);
     res.status(500).json({
-      error: error.message,
+      error: "Internal Server Error during login",
+      message: error.message,
     });
   }
 };
