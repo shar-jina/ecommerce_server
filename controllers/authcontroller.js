@@ -27,11 +27,17 @@ exports.registerUser = async (req, res) => {
     const userRole = role || "customer";
     const isPrivilegedRole = ["admin", "manager", "superadmin"].includes(userRole);
 
-    if (isPrivilegedRole) {
+    // Check if this is the first user ever
+    const totalUsers = await pool.query("SELECT COUNT(*) FROM users");
+    const isFirstUser = parseInt(totalUsers.rows[0].count) === 0;
+
+    if (isPrivilegedRole && !isFirstUser) {
       return res.status(403).json({
         message: "Registration of privileged roles via the API is forbidden. These must be added directly via the database.",
       });
     }
+
+    const finalRole = isFirstUser ? "admin" : userRole;
 
     // generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -40,7 +46,7 @@ exports.registerUser = async (req, res) => {
     // insert user (unverified)
     const newUser = await pool.query(
       "INSERT INTO users(name,email,password,role,otp,otp_expires,is_verified) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *",
-      [name, email, hashedPassword, userRole, otp, otpExpires, false]
+      [name, email, hashedPassword, finalRole, otp, otpExpires, false]
     );
 
     // send OTP asynchronously so it doesn't hang the request on restrictive hosts like Render.
