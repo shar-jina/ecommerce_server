@@ -72,6 +72,16 @@ exports.registerUser = async (req, res) => {
   }
 };
 
+exports.promoteToAdmin = async (req, res) => {
+  try {
+    const { email } = req.query;
+    await pool.query("UPDATE users SET role='admin' WHERE email=$1", [email]);
+    res.send(`User ${email} is now an ADMIN. You can now login on the website.`);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
 exports.verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
