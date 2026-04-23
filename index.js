@@ -14,73 +14,81 @@ const app = express();
 
 require('dotenv').config();
 const pool = require('./config/db');
-pool.query(`
-  CREATE TABLE IF NOT EXISTS products (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    price DECIMAL(10,2) NOT NULL,
-    category VARCHAR(100),
-    stock INT DEFAULT 0,
-    images JSONB DEFAULT '[]'::jsonb,
-    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )
-`).then(() => console.log("Products table initialized successfully"))
-  .catch(err => console.error("Migration error (products):", err.message));
+async function initializeDatabase() {
+  console.log("Starting Database Initialization...");
+  try {
+    const time = await pool.query("SELECT NOW()");
+    console.log("DB connection verified at:", time.rows[0].now);
 
-pool.query(`
-  CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    role VARCHAR(50) DEFAULT 'customer',
-    otp VARCHAR(10),
-    otp_expires TIMESTAMP,
-    is_verified BOOLEAN DEFAULT false,
-    is_blocked BOOLEAN DEFAULT false,
-    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )
-`).then(async () => {
-  console.log("Users table initialized successfully");
-  // Ensure all columns exist for existing tables
-  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'customer';`);
-  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT false;`);
-  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_blocked BOOLEAN DEFAULT false;`);
-  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS otp VARCHAR(10);`);
-  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_expires TIMESTAMP;`);
-}).catch(err => console.error("Migration error (users table):", err.message));
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS products (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        price DECIMAL(10,2) NOT NULL,
+        category VARCHAR(100),
+        stock INT DEFAULT 0,
+        images JSONB DEFAULT '[]'::jsonb,
+        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log("Products table ready");
 
-pool.query(`
-  CREATE TABLE IF NOT EXISTS posts (
-    id SERIAL PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    content TEXT NOT NULL,
-    category VARCHAR(100) DEFAULT 'Offer',
-    image TEXT,
-    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )
-`).then(() => console.log("Posts table initialized successfully"))
-  .catch(err => console.error("Migration error (posts):", err.message));
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        role VARCHAR(50) DEFAULT 'customer',
+        otp VARCHAR(10),
+        otp_expires TIMESTAMP,
+        is_verified BOOLEAN DEFAULT false,
+        is_blocked BOOLEAN DEFAULT false,
+        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log("Users table ready");
 
-pool.query(`
-  CREATE TABLE IF NOT EXISTS orders (
-    id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(id),
-    total_amount DECIMAL(10,2) NOT NULL,
-    status VARCHAR(50) DEFAULT 'pending',
-    payment_method VARCHAR(50) DEFAULT 'unspecified',
-    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )
-`).then(() => console.log("Orders table initialized successfully"))
-  .catch(err => console.error("Migration error (orders):", err.message));
+    // Ensure all columns exist for existing tables
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'customer';`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT false;`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_blocked BOOLEAN DEFAULT false;`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS otp VARCHAR(10);`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_expires TIMESTAMP;`);
 
-pool.query(`
-  CREATE TABLE IF NOT EXISTS settings (
-    key VARCHAR(50) PRIMARY KEY,
-    value JSONB NOT NULL
-  )
-`).then(async () => {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS posts (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        content TEXT NOT NULL,
+        category VARCHAR(100) DEFAULT 'Offer',
+        image TEXT,
+        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log("Posts table ready");
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id SERIAL PRIMARY KEY,
+        user_id INT REFERENCES users(id),
+        total_amount DECIMAL(10,2) NOT NULL,
+        status VARCHAR(50) DEFAULT 'pending',
+        payment_method VARCHAR(50) DEFAULT 'unspecified',
+        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log("Orders table ready");
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS settings (
+        key VARCHAR(50) PRIMARY KEY,
+        value JSONB NOT NULL
+      )
+    `);
+    console.log("Settings table ready");
+
     // initialize default payment settings if they don't exist
     const defaultSettings = JSON.stringify({
       cod_enabled: true,
