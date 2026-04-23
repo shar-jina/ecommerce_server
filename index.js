@@ -69,10 +69,15 @@ async function initializeDatabase() {
         content TEXT NOT NULL,
         category VARCHAR(100) DEFAULT 'Offer',
         image TEXT,
+        product_id INT REFERENCES products(id) ON DELETE SET NULL,
+        link TEXT,
         "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
     console.log("Posts table ready");
+    // Ensure all columns exist for existing tables
+    await pool.query(`ALTER TABLE posts ADD COLUMN IF NOT EXISTS product_id INT REFERENCES products(id) ON DELETE SET NULL;`);
+    await pool.query(`ALTER TABLE posts ADD COLUMN IF NOT EXISTS link TEXT;`);
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS orders (
