@@ -149,7 +149,7 @@ app.use(cors({
   origin: [
     process.env.FRONTEND_URL, 
     "http://localhost:5173", 
-    "https://ecommerce-tan-psi-66.vercel.app"
+    "https://ecommerce-fjnw.vercel.app"
   ].filter(Boolean), 
   credentials: true 
 }));
@@ -178,11 +178,14 @@ app.get("/", (req, res) => {
   res.status(200).send("Ecommerce Backend Running");
 });
 
-const PORT = process.env.PORT || 3000;
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+module.exports = app;
 
 app.use((err, req, res, next) => {
   console.error("GLOBAL ERROR:", err);
