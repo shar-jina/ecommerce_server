@@ -28,11 +28,16 @@ async function initializeDatabase() {
         price DECIMAL(10,2) NOT NULL,
         category VARCHAR(100),
         stock INT DEFAULT 0,
+        image TEXT,
         images JSONB DEFAULT '[]'::jsonb,
+        specifications JSONB DEFAULT '{}'::jsonb,
         "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
     console.log("Products table ready");
+    // Ensure columns exist for existing tables
+    await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS image TEXT;`);
+    await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS specifications JSONB DEFAULT '{}'::jsonb;`);
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (

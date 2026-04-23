@@ -2,7 +2,7 @@ const pool = require("../config/db");
 
 exports.addProduct = async (req, res) => {
   try {
-    const { name, price, description, category, stock } = req.body;
+    const { name, price, description, category, stock, specifications } = req.body;
     
     let images = [];
     if (req.files && req.files.length > 0) {
@@ -13,10 +13,10 @@ exports.addProduct = async (req, res) => {
     const image = images.length > 0 ? images[0] : null;
 
     const newProduct = await pool.query(
-      `INSERT INTO products(name,price,description,image,images,category,stock)
-       VALUES($1,$2,$3,$4,$5,$6,$7)
+      `INSERT INTO products(name,price,description,image,images,category,stock,specifications)
+       VALUES($1,$2,$3,$4,$5,$6,$7,$8)
        RETURNING *`,
-      [name, parseFloat(price), description, image, JSON.stringify(images), category, parseInt(stock) || 0]
+      [name, parseFloat(price), description, image, JSON.stringify(images), category, parseInt(stock) || 0, specifications || '{}']
     );
 
     res.status(201).json({
@@ -54,7 +54,7 @@ exports.getProductById = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, price, description, category, stock } = req.body;
+    const { name, price, description, category, stock, specifications } = req.body;
     
     let images = req.body.images ? JSON.parse(req.body.images) : [];
     if (req.files && req.files.length > 0) {
@@ -72,10 +72,10 @@ exports.updateProduct = async (req, res) => {
 
     const updatedProduct = await pool.query(
       `UPDATE products 
-       SET name=$1, price=$2, description=$3, image=$4, images=$5, category=$6, stock=$7
-       WHERE id=$8
+       SET name=$1, price=$2, description=$3, image=$4, images=$5, category=$6, stock=$7, specifications=$8
+       WHERE id=$9
        RETURNING *`,
-      [name, parseFloat(price), description, dbImage, JSON.stringify(images), category, parseInt(stock) || 0, id]
+      [name, parseFloat(price), description, dbImage, JSON.stringify(images), category, parseInt(stock) || 0, specifications || '{}', id]
     );
 
     if (updatedProduct.rows.length === 0) {
