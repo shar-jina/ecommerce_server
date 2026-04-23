@@ -96,8 +96,14 @@ async function initializeDatabase() {
       instructions: "Please prepare exact change for Cash on Delivery. Online payment is currently disabled."
     });
     await pool.query(`INSERT INTO settings (key, value) VALUES ('payment', $1) ON CONFLICT (key) DO NOTHING`, [defaultSettings]);
-    console.log("Migrated settings table to support global configurations");
-}).catch(err => console.error("Migration error (settings):", err.message));
+    console.log("Default settings initialized");
+
+  } catch (err) {
+    console.error("CRITICAL DATABASE INITIALIZATION ERROR:", err.message);
+  }
+}
+
+initializeDatabase();
 
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
