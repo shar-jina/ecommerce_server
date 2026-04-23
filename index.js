@@ -70,6 +70,8 @@ async function initializeDatabase() {
         category VARCHAR(100) DEFAULT 'Offer',
         image TEXT,
         product_id INT REFERENCES products(id) ON DELETE SET NULL,
+        discount_label VARCHAR(50),
+        target_category VARCHAR(100),
         link TEXT,
         "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -78,18 +80,40 @@ async function initializeDatabase() {
     // Ensure all columns exist for existing tables
     await pool.query(`ALTER TABLE posts ADD COLUMN IF NOT EXISTS product_id INT REFERENCES products(id) ON DELETE SET NULL;`);
     await pool.query(`ALTER TABLE posts ADD COLUMN IF NOT EXISTS link TEXT;`);
+    await pool.query(`ALTER TABLE posts ADD COLUMN IF NOT EXISTS discount_label VARCHAR(50);`);
+    await pool.query(`ALTER TABLE posts ADD COLUMN IF NOT EXISTS target_category VARCHAR(100);`);
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
-        user_id INT REFERENCES users(id),
+        user_id INT REFERENCES users(id) ON DELETE CASCADE,
         total_amount DECIMAL(10,2) NOT NULL,
         status VARCHAR(50) DEFAULT 'pending',
+        shipping_address TEXT,
+        contact_number VARCHAR(20),
         payment_method VARCHAR(50) DEFAULT 'unspecified',
-        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
     console.log("Orders table ready");
+
+    // Migration for orders table
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_address TEXT;`);
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS contact_number VARCHAR(20);`);
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS order_items (
+        id SERIAL PRIMARY KEY,
+        order_id INT REFERENCES orders(id) ON DELETE CASCADE,
+        product_id INT REFERENCES products(id) ON DELETE SET NULL,
+        quantity INT NOT NULL DEFAULT 1,
+        price DECIMAL(10,2) NOT NULL,
+        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log("Order items table ready");
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS settings (
