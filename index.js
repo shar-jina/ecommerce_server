@@ -149,8 +149,9 @@ app.use(cors({
   origin: [
     process.env.FRONTEND_URL, 
     "http://localhost:5173", 
-    "https://ecommerce-qzvk-git-main-sharjinas-projects.vercel.app",
-    "https://ecommerce-fjnw.vercel.app"
+    "https://ecommerce-git-main-sharjinas-projects.vercel.app",
+    "https://ecommerce-a5zjycof7-sharjinas-projects.vercel.app",
+    "https://ecommerce-steel-eta.vercel.app"
   ].filter(Boolean), 
   credentials: true 
 }));
